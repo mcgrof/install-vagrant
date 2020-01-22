@@ -1,0 +1,20 @@
+---
+- name: Update apt cache
+  become: yes
+  become_method: sudo
+  apt:
+    update_cache: yes
+  tags: install
+
+- name: Install vagrant and vagrant-libvirt
+  become: yes
+  become_method: sudo
+  apt:
+    name:
+      - vagrant
+      - vagrant-libvirt
+    state: present
+  tags: install
+
+- name: Installs the vagrant-libvirt build dependencies in case of manual update
+  command: "apt-get build-dep vagrant ruby-libvirt"

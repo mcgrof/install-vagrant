@@ -1,0 +1,23 @@
+---
+- name: Install vagrant
+  become: yes
+  become_method: sudo
+  yum:
+    name:
+      - vagrant
+    state: present
+
+# No package yet for this... which means we have to install
+# its build dependencies as well.
+- name: Install vagrant-libvirt build dependencies
+  become: yes
+  become_method: sudo
+  yum:
+    name:
+      - libvirt-devel
+      - ruby-devel
+      - gcc 
+    state: present
+
+- name: Installs the libvirt vagrant plugin
+  command: "vagrant plugin install vagrant-libvirt"
