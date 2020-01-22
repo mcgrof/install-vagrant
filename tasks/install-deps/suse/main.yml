@@ -7,6 +7,22 @@
       - vagrant
     state: present
 
+# This is a major heck, alas, vagrant plugin subset commands do not have any
+# easy way to confirm if a plugin is installed in a straight forward way.
+# Otherwise, we'd install vagrant-libvirt without checking, and even if
+# that is installed the latest version, this takes *forever*.
+- name: Check if the vagrant plugin vagrant-libvirt is installed
+  shell: |
+    set -o pipefail
+    vagrant status
+  args:
+    executable: /bin/bash
+    chdir: "{{ role_path }}"
+  register: plugin_check
+  changed_when: plugin_check.rc == 0
+  failed_when: plugin_check.rc != 0 and plugin_check.rc != 1
+  run_once: true
+
 # No package yet for this... which means we have to install
 # its build dependencies as well.
 - name: Install vagrant-libvirt build dependencies
@@ -18,8 +34,12 @@
       - ruby-devel
       - gcc
     state: present
+  when:
+    - plugin_check.rc != 0
 
 - name: Installs the libvirt vagrant plugin
   command: "vagrant plugin install vagrant-libvirt"
   register: cmd_done
   changed_when: "cmd_done.rc == 0"
+  when:
+    - plugin_check.rc != 0
