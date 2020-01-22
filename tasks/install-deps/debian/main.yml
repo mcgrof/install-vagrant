@@ -25,6 +25,3 @@
       - ruby-libvirt
     state: build-dep
   tags: install
-
-- name: Installs the vagrant-libvirt build dependencies in case of manual update
-  command: "vagrant plugin install vagrant-libvirt"
