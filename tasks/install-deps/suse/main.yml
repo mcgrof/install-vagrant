@@ -16,7 +16,7 @@
     name:
       - libvirt-devel
       - ruby-devel
-      - gcc 
+      - gcc
     state: present
 
 - name: Installs the libvirt vagrant plugin
