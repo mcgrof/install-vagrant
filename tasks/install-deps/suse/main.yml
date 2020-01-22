@@ -21,3 +21,5 @@
 
 - name: Installs the libvirt vagrant plugin
   command: "vagrant plugin install vagrant-libvirt"
+  register: configure_done
+  changed_when: "configure_done.rc == 0"
