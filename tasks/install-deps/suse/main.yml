@@ -44,7 +44,7 @@
       - libvirt-devel
       - ruby-devel
       - gcc
-      - kvm-qemu
+      - qemu-kvm
     state: present
   when:
     - plugin_check.rc != 0
