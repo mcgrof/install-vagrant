@@ -3,4 +3,9 @@
 
 # You can override these
 vagrant_version: "2.2.6"
+
+# Ignores using distro packages and installs from zip file instead
+force_install_zip: False
+
+# Forces to install even if it is already present
 force_install_if_present: False
