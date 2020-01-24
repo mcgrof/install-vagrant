@@ -39,9 +39,12 @@
   become_method: sudo
   zypper:
     name:
+      - qemu
+      - libvirt
       - libvirt-devel
       - ruby-devel
       - gcc
+      - kvm-qemu
     state: present
   when:
     - plugin_check.rc != 0
