@@ -6,6 +6,33 @@
   failed_when: vagrant_present.rc != 0 and vagrant_present.rc != 1
   tags: [ 'vagrant', 'verify' ]
 
+- name: "add the following development projects: Virtualization:vagrant"
+  include_tasks: ./add_obs_repo.yml
+  vars:
+    obs_project_name: "{{ item.name }}"
+    obs_project_gpg_key: "{{ item.key }}"
+  loop:
+    - name: "Virtualization:vagrant"
+      key: files/vagrant.pub
+  when:
+    - not force_install_if_present|bool
+    - not force_install_zip|bool
+    - vagrant_present.rc != 0
+
+- name: Install vagrant and vagrant-libvirt from repository
+  become: yes
+  become_method: sudo
+  zypper:
+    name:
+      - vagrant
+      - vagrant-libvirt
+    state: present
+  when:
+    - not force_install_zip|bool
+    - plugin_check.rc != 0
+    - not force_install_if_present|bool
+    - vagrant_present.rc != 0
+
 - name: Downlaod vagrant from the latest release and install locally
   become: yes
   become_method: sudo
@@ -14,6 +41,7 @@
     dest: /usr/local/bin
     remote_src: yes
   when:
+    - force_install_zip|bool
     - force_install_if_present|bool or vagrant_present.rc != 0
 
 # This is a major heck, alas, vagrant plugin subset commands do not have any
@@ -31,9 +59,9 @@
   changed_when: plugin_check.rc == 0
   failed_when: plugin_check.rc != 0 and plugin_check.rc != 1
   run_once: true
+  when:
+    - force_install_zip|bool
 
-# No package yet for this... which means we have to install
-# its build dependencies as well.
 - name: Install vagrant-libvirt build dependencies
   become: yes
   become_method: sudo
@@ -47,6 +75,7 @@
       - qemu-kvm
     state: present
   when:
+    - force_install_zip|bool
     - plugin_check.rc != 0
 
 - name: Installs the libvirt vagrant plugin
@@ -54,4 +83,5 @@
   register: cmd_done
   changed_when: "cmd_done.rc == 0"
   when:
-    - plugin_check.rc != 0
+    - force_install_zip|bool
+    - force_install_if_present|bool or vagrant_present.rc != 0

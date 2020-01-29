@@ -1,0 +1,106 @@
+---
+- fail:
+    msg: Fail when the OBS project name is not set
+  when: obs_project_name is not defined
+
+- set_fact:
+    obs_url: "https://build.opensuse.org/"
+    obs_project_no_collon: "{{ obs_project_name | lower | replace(':', '_') }}"
+    is_sle: '{{ (ansible_distribution == "SLES") or (ansible_distribution == "SLED") }}'
+    is_leap: '{{ "Leap" in ansible_distribution }}'
+    is_tumbleweed: '{{ "openSUSE Tumbleweed" == ansible_distribution }}'
+
+- set_fact:
+    obs_project_signkey: "/usr/local/share/{{ obs_project_no_collon }}.pub"
+
+- name: ensure that /usr/local/share/ is a directory
+  file:
+    path: /usr/local/share/
+    state: directory
+
+- block:
+    - set_fact:
+        pubkey_url: "{{ obs_url }}projects/{{ obs_project_name }}/public_key"
+
+    - name: fetch the repository's public key
+      get_url:
+        url: "{{ pubkey_url }}"
+        validate_certs: yes
+        dest: "{{ obs_project_signkey }}"
+
+  when: obs_project_gpg_key is not defined
+
+- name: copy the repository's public key to the remote machine
+  copy:
+    src: "{{ obs_project_gpg_key }}"
+    dest: "{{ obs_project_signkey }}"
+  when: obs_project_gpg_key is defined
+
+- name: import the signkey into the rpm key database
+  rpm_key:
+    state: present
+    key: "{{ obs_project_signkey }}"
+
+- block:
+    - name: set Leap repository names
+      set_fact:
+        repo_distro_end: "openSUSE_Leap_{{ ansible_distribution_version }}"
+      when: 'is_leap | bool'
+
+    - name: set Tumbleweed repository names
+      set_fact:
+        repo_distro_end: "openSUSE_Tumbleweed"
+      when: 'is_tumbleweed | bool'
+
+    - name: set SLE repository names
+      set_fact:
+        repo_distro_end: "SLE_{{ ansible_distribution_version | replace('.', '_SP') }}"
+      when: 'is_sle | bool'
+
+  when: obs_project_repository_name is not defined
+
+- set_fact:
+    obs_project_repo_base: "{{ obs_url | replace('build', 'download') }}repositories/{{ obs_project_name | replace(':', ':/') }}/"
+
+- name: try to fetch the obs project .repo file
+  get_url:
+    url: "{{ obs_project_repo_base }}/{{ repo_distro_end }}/{{ obs_project_name }}.repo"
+    dest: /dev/null
+    force: yes
+  register: default_end_fetch
+  ignore_errors: true
+  changed_when: false
+
+- block:
+    - set_fact:
+        repo_distro_end: openSUSE_Factory
+      when: 'is_tumbleweed | bool'
+
+    - set_fact:
+        repo_distro_end: "SLE_{{ ansible_distribution_version | replace('.', '-SP') }}"
+      when: 'is_sle | bool'
+
+    - name: try to fetch the project .repo file again
+      get_url:
+        url: "{{ obs_project_repo_base }}/{{ repo_distro_end }}/{{ obs_project_name }}.repo"
+        dest: /dev/null
+        force: yes
+      register: second_end_fetch
+      changed_when: false
+      ignore_errors: true
+
+    - set_fact:
+        repo_distro_end: "SLE-{{ ansible_distribution_version | replace('.', '-SP') }}"
+      when: '(is_sle | bool) and (second_end_fetch.failed | bool)'
+
+  when: 'default_end_fetch.failed | bool'
+
+- set_fact:
+    obs_project_repo_url: "{{ obs_project_repo_base }}/{{ repo_distro_end }}"
+
+- name: add the repository
+  zypper_repository:
+    repo: "{{ obs_project_repo_url }}"
+    name: "{{ obs_project_no_collon }}"
+    state: present
+    runrefresh: yes
