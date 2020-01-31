@@ -37,7 +37,6 @@
     state: present
   when:
     - not force_install_zip|bool
-    - plugin_check.rc != 0
     - not force_install_if_present|bool
     - vagrant_present.rc != 0
 
