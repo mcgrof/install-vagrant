@@ -27,6 +27,8 @@
         pubkey_url: "{{ obs_url }}projects/{{ obs_project_name }}/public_key"
 
     - name: fetch the repository's public key
+      become: yes
+      become_method: sudo
       get_url:
         url: "{{ pubkey_url }}"
         validate_certs: yes
@@ -35,12 +37,16 @@
   when: obs_project_gpg_key is not defined
 
 - name: copy the repository's public key to the remote machine
+  become: yes
+  become_method: sudo
   copy:
     src: "{{ obs_project_gpg_key }}"
     dest: "{{ obs_project_signkey }}"
   when: obs_project_gpg_key is defined
 
 - name: import the signkey into the rpm key database
+  become: yes
+  become_method: sudo
   rpm_key:
     state: present
     key: "{{ obs_project_signkey }}"
@@ -68,6 +74,8 @@
     obs_project_repo_base: "{{ obs_url | replace('build', 'download') }}repositories/{{ obs_project_name | replace(':', ':/') }}/"
 
 - name: try to fetch the obs project .repo file
+  become: yes
+  become_method: sudo
   get_url:
     url: "{{ obs_project_repo_base }}/{{ repo_distro_end }}/{{ obs_project_name }}.repo"
     dest: /dev/null
@@ -88,6 +96,8 @@
       when: 'is_sle | bool'
 
     - name: try to fetch the project .repo file again
+      become: yes
+      become_method: sudo
       get_url:
         url: "{{ obs_project_repo_base }}/{{ repo_distro_end }}/{{ obs_project_name }}.repo"
         dest: /dev/null
@@ -108,6 +118,8 @@
     obs_project_repo_url: "{{ obs_project_repo_base }}/{{ repo_distro_end }}"
 
 - name: add the repository
+  become: yes
+  become_method: sudo
   zypper_repository:
     repo: "{{ obs_project_repo_url }}"
     name: "{{ obs_project_no_collon }}"
