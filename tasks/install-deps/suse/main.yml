@@ -20,6 +20,8 @@
     obs_project_name: "{{ item.name }}"
     obs_project_gpg_key: "{{ item.key }}"
   loop:
+    - name: "devel:languages:ruby:extensions"
+      key: files/ruby_extensions_devel_key.pub
     - name: "Virtualization:vagrant"
       key: files/vagrant.pub
   when:
@@ -34,7 +36,9 @@
     name:
       - vagrant
       - vagrant-libvirt
-    state: present
+    extra_args: '--allow-vendor-change'
+    state: latest
+    disable_recommends: no
   when:
     - not force_install_zip|bool
     - not force_install_if_present|bool

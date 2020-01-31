@@ -20,4 +20,4 @@ sle_custom_repo_distro_end: False
 # https://download.opensuse.org/repositories/Virtualization:/vagrant/SLE_15-SP1/
 # for now, as we have no public release on obs for 15.2 yet.
 sle_distro_end_map:
-  - { ansible_distribution_version: '15.2', repo_distro_end: '15-SP1' }
+  - { obs_project_name: 'Virtualization:vagrant', ansible_distribution_version: '15.2', repo_distro_end: '15-SP1' }

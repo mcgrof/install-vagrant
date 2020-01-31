@@ -84,6 +84,7 @@
     - 'sle_custom_repo_distro_end | bool'
     - 'is_sle | bool'
     - ansible_distribution_version == repo.ansible_distribution_version
+    - obs_project_name == repo.obs_project_name
 
 - name: try to fetch the obs project .repo file
   become: yes
