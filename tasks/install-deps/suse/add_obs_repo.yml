@@ -1,16 +1,19 @@
 ---
-- fail:
+- name: Verify obs_project_name is defined
+  fail:
     msg: Fail when the OBS project name is not set
   when: obs_project_name is not defined
 
-- set_fact:
+- name: Set SUSE specific distro facts
+  set_fact:
     obs_url: "https://build.opensuse.org/"
     obs_project_no_collon: "{{ obs_project_name | lower | replace(':', '_') }}"
     is_sle: '{{ (ansible_distribution == "SLES") or (ansible_distribution == "SLED") }}'
     is_leap: '{{ "Leap" in ansible_distribution }}'
     is_tumbleweed: '{{ "openSUSE Tumbleweed" == ansible_distribution }}'
 
-- set_fact:
+- name: Set OBS pubkey file location
+  set_fact:
     obs_project_signkey: "/usr/local/share/{{ obs_project_no_collon }}.pub"
 
 - name: ensure that /usr/local/share/ is a directory
@@ -19,7 +22,8 @@
     state: directory
 
 - block:
-    - set_fact:
+    - name: Set pubkey URL
+      set_fact:
         pubkey_url: "{{ obs_url }}projects/{{ obs_project_name }}/public_key"
 
     - name: fetch the repository's public key
@@ -59,7 +63,8 @@
 
   when: obs_project_repository_name is not defined
 
-- set_fact:
+- name: Set obs project repo URL
+  set_fact:
     obs_project_repo_base: "{{ obs_url | replace('build', 'download') }}repositories/{{ obs_project_name | replace(':', ':/') }}/"
 
 - name: try to fetch the obs project .repo file
@@ -72,11 +77,13 @@
   changed_when: false
 
 - block:
-    - set_fact:
+    - name: Set distro end name for tumbleweed
+      set_fact:
         repo_distro_end: openSUSE_Factory
       when: 'is_tumbleweed | bool'
 
-    - set_fact:
+    - name: Set distro end name for SLE
+      set_fact:
         repo_distro_end: "SLE_{{ ansible_distribution_version | replace('.', '-SP') }}"
       when: 'is_sle | bool'
 
@@ -89,13 +96,15 @@
       changed_when: false
       ignore_errors: true
 
-    - set_fact:
+    - name: Set repo end name for SLE when second end fetch fails
+      set_fact:
         repo_distro_end: "SLE-{{ ansible_distribution_version | replace('.', '-SP') }}"
       when: '(is_sle | bool) and (second_end_fetch.failed | bool)'
 
   when: 'default_end_fetch.failed | bool'
 
-- set_fact:
+- name: Set obs project repo URL
+  set_fact:
     obs_project_repo_url: "{{ obs_project_repo_base }}/{{ repo_distro_end }}"
 
 - name: add the repository
