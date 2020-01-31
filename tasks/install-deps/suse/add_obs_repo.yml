@@ -75,13 +75,15 @@
 
 - name: Forced SLE custom distro end name to a temporary name from config file
   set_fact:
-    repo_distro_end: "{{ item.repo_distro_end }}"
+    repo_distro_end: "{{ repo.repo_distro_end }}"
   with_items:
     - "{{ sle_distro_end_map }}"
+  loop_control:
+    loop_var: repo
   when:
     - 'sle_custom_repo_distro_end | bool'
     - 'is_sle | bool'
-    - "{{ ansible_distribution_version }} == {{ item.ansible_distribution_version }}"
+    - ansible_distribution_version == repo.ansible_distribution_version
 
 - name: try to fetch the obs project .repo file
   become: yes
