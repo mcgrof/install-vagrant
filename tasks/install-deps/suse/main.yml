@@ -7,6 +7,8 @@
   tags: [ 'vagrant', 'verify' ]
 
 - name: "add the following development projects: Virtualization:vagrant"
+  become: yes
+  become_method: sudo
   include_tasks: ./add_obs_repo.yml
   vars:
     obs_project_name: "{{ item.name }}"
