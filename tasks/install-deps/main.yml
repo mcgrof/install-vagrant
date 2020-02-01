@@ -1,4 +1,12 @@
 ---
+- name: Import optional distribution specific variables
+  include_vars: "{{ item }}"
+  ignore_errors: yes
+  with_first_found:
+    - files:
+      - "{{ ansible_facts['os_family']|lower }}.yml"
+  tags: vars
+
 - name: distribution specific setup
   import_tasks: debian/main.yml
   when: ansible_facts['os_family']|lower == 'debian'
