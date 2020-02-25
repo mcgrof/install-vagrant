@@ -16,7 +16,12 @@ Run a supported OS/distribution:
 Role Variables
 --------------
 
-None.
+  * vagrant_version: the vagrant version to install. This is only used if
+    downloading and installing the zip file.
+  * force_install_zip: if your distro supports a package ignore it, and instead
+    installt he package from the zip file directly from Hashicorp
+  * force_install_if_present: set to False by default, set this to True to
+    force download vagrant even if you already have it present.
 
 Dependencies
 ------------
