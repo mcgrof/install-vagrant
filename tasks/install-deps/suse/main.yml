@@ -12,7 +12,7 @@
   failed_when: vagrant_present.rc != 0 and vagrant_present.rc != 1
   tags: [ 'vagrant', 'verify' ]
 
-- name: "add the following development projects: Virtualization:vagrant"
+- name: "Add the following development opensuse projects"
   include_tasks: ./add_obs_repo.yml
   vars:
     obs_project_name: "{{ item.name }}"
@@ -26,8 +26,9 @@
     - not force_install_if_present|bool
     - not force_install_zip|bool
     - vagrant_present.rc != 0
+    - is_sle or is_leap
 
-- name: Install vagrant and vagrant-libvirt from repository
+- name: Install vagrant and vagrant-libvirt from opensuse repository
   become: yes
   become_method: sudo
   zypper:
@@ -41,8 +42,22 @@
     - not force_install_zip|bool
     - not force_install_if_present|bool
     - vagrant_present.rc != 0
+    - is_sle or is_leap
 
-- name: Downlaod vagrant from the latest release and install locally
+- name: Install vagrant and vagrant-libvirt from your tumbleweed repository
+  become: yes
+  become_method: sudo
+  zypper:
+    name:
+      - vagrant
+      - vagrant-libvirt
+  when:
+    - not force_install_zip|bool
+    - not force_install_if_present|bool
+    - vagrant_present.rc != 0
+    - is_tumbleweed
+
+- name: Download vagrant from the latest release and install locally
   become: yes
   become_method: sudo
   unarchive:
